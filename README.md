@@ -3,9 +3,8 @@
 Tired of opening Google Calendar in the browser? GCal is a lightweight / minimal macOS app that wraps Google Calendar in a native window. 
 
 <p align="center">
-<img src="assets/dock.png" width="500" alt="GCal in the Dock">
-<br><br>
-<img src="assets/menubar.png" width="300" alt="Menu bar dropdown">
+<img src="assets/dock.png" height="200" alt="GCal in the Dock">&nbsp;&nbsp;&nbsp;
+<img src="assets/menubar.png" height="200" alt="Menu bar dropdown">
 </p>
 
 ## Install
