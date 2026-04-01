@@ -2,8 +2,10 @@
 
 Tired of opening Google Calendar in the browser? GCal is a lightweight / minimal macOS app that wraps Google Calendar in a native window. 
 
-<p>
+<p align="center">
 <img src="assets/dock.png" width="500" alt="GCal in the Dock">
+<br><br>
+<img src="assets/menubar.png" width="300" alt="Menu bar dropdown">
 </p>
 
 ## Install
@@ -32,8 +34,6 @@ This builds the app and copies it to `/Applications`. Requires Xcode 15+ and mac
 | Cmd + Shift + T | Go to Today |
 
 ## Menu Bar
-
-<img src="assets/menubar.png" width="300" alt="Menu bar dropdown">
 
 The menu bar icon shows a calendar with the number of events remaining today. This uses macOS EventKit, if you want it to reflect your Google Calendar events, add your Google account in **System Settings > Internet Accounts**.
 
