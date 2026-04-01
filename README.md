@@ -10,7 +10,7 @@ Tired of opening Google Calendar in the browser? GCal is a lightweight / minimal
 ## Install
 
 ```
-git clone https://github.com/yourusername/gcal-app.git
+git clone https://github.com/avocardio/gcal-app.git
 cd gcal-app
 make install
 ```
