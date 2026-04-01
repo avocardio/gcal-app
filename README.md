@@ -1,6 +1,6 @@
 # GCal
 
-Tired of opening Google Calendar in the browser? GCal is a lightweight macOS app that wraps Google Calendar in a native window. 
+Tired of opening Google Calendar in the browser? GCal is a lightweight / minimal macOS app that wraps Google Calendar in a native window. 
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/256px-Google_Calendar_icon_%282020%29.svg.png" width="128" alt="GCal icon">
 
