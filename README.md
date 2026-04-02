@@ -34,7 +34,7 @@ This builds the app and copies it to `/Applications`. Requires Xcode 15+ and mac
 
 ## Menu Bar
 
-The menu bar icon shows a calendar with the number of events remaining today. This uses macOS EventKit, if you want it to reflect your Google Calendar events, add your Google account in **System Settings > Internet Accounts**.
+The menu bar icon shows the number of events visible on your calendar. The count updates automatically every 60 seconds.
 
 Click the menu bar icon to quickly open the calendar window or quit the app.
 

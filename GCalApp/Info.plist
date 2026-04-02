@@ -26,7 +26,5 @@
 	<string></string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>GCal shows the number of remaining events today in the menu bar.</string>
 </dict>
 </plist>

@@ -5,6 +5,18 @@ struct CalendarWebView: NSViewRepresentable {
     static let calendarURL = URL(string: "https://calendar.google.com")!
     static let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15"
 
+    // JS to count event elements visible on the page
+    static let countEventsJS = """
+    (function() {
+        var selectors = ['[data-eventid]', '[data-eventchip]', '[data-eventchip-id]'];
+        for (var i = 0; i < selectors.length; i++) {
+            var els = document.querySelectorAll(selectors[i]);
+            if (els.length > 0) return els.length;
+        }
+        return -1;
+    })()
+    """
+
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
@@ -14,7 +26,7 @@ struct CalendarWebView: NSViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
-        webView.setValue(false, forKey: "drawsBackground") // transparent during load
+        webView.setValue(false, forKey: "drawsBackground")
 
         #if DEBUG
         if #available(macOS 13.3, *) { webView.isInspectable = true }
@@ -33,6 +45,7 @@ struct CalendarWebView: NSViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         private weak var webView: WKWebView?
         private var observers: [Any] = []
+        private var countTimer: Timer?
 
         func bind(_ webView: WKWebView) {
             self.webView = webView
@@ -53,9 +66,32 @@ struct CalendarWebView: NSViewRepresentable {
             ]
         }
 
-        deinit { observers.forEach { NotificationCenter.default.removeObserver($0) } }
+        deinit {
+            observers.forEach { NotificationCenter.default.removeObserver($0) }
+            countTimer?.invalidate()
+        }
+
+        private func refreshEventCount() {
+            webView?.evaluateJavaScript(CalendarWebView.countEventsJS) { result, _ in
+                if let count = result as? Int, count >= 0 {
+                    DispatchQueue.main.async { EventCount.shared.count = count }
+                }
+            }
+        }
 
         // MARK: WKNavigationDelegate
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            // Count events after page loads, with a short delay for JS rendering
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                self?.refreshEventCount()
+            }
+            // Start periodic refresh
+            countTimer?.invalidate()
+            countTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+                self?.refreshEventCount()
+            }
+        }
 
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                       decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
