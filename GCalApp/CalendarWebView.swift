@@ -5,8 +5,8 @@ struct CalendarWebView: NSViewRepresentable {
     static let calendarURL = URL(string: "https://calendar.google.com")!
     static let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15"
 
-    // JS to count remaining (not yet started) timed events today
-    static let countEventsJS = """
+    // JS to extract start times (minutes since midnight) of today's timed events
+    static let eventTimesJS = """
     (function() {
         var now = new Date();
         var y = now.getFullYear();
@@ -16,9 +16,8 @@ struct CalendarWebView: NSViewRepresentable {
         var months = ['January','February','March','April','May','June','July',
                       'August','September','October','November','December'];
         var todayStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-        var nowMins = now.getHours() * 60 + now.getMinutes();
         var els = document.querySelectorAll('[data-eventid]');
-        var count = 0;
+        var times = [];
         for (var i = 0; i < els.length; i++) {
             var text = els[i].innerText || '';
             if (!text) continue;
@@ -42,9 +41,9 @@ struct CalendarWebView: NSViewRepresentable {
                 var m24 = text.match(/\\b(\\d{1,2}):(\\d{2})\\b/);
                 if (m24) { h = parseInt(m24[1]); mn = parseInt(m24[2]); }
             }
-            if (h >= 0 && h * 60 + mn > nowMins) count++;
+            if (h >= 0) times.push(h * 60 + mn);
         }
-        return count;
+        return JSON.stringify(times);
     })()
     """
 
@@ -103,10 +102,12 @@ struct CalendarWebView: NSViewRepresentable {
         }
 
         private func refreshEventCount() {
-            webView?.evaluateJavaScript(CalendarWebView.countEventsJS) { result, _ in
-                if let count = result as? Int, count >= 0 {
-                    DispatchQueue.main.async { EventCount.shared.count = count }
-                }
+            webView?.evaluateJavaScript(CalendarWebView.eventTimesJS) { result, _ in
+                guard let json = result as? String,
+                      let data = json.data(using: .utf8),
+                      let times = try? JSONDecoder().decode([Int].self, from: data)
+                else { return }
+                DispatchQueue.main.async { EventCount.shared.update(times: times) }
             }
         }
 

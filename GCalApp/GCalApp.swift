@@ -49,6 +49,27 @@ struct GCalApp: App {
 final class EventCount {
     static let shared = EventCount()
     var count: Int? = nil
+    private var eventTimes: [Int] = [] // start times in minutes since midnight
+    private var timer: Timer?
+
+    init() {
+        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            self?.recalculate()
+        }
+    }
+
+    func update(times: [Int]) {
+        eventTimes = times
+        recalculate()
+    }
+
+    private func recalculate() {
+        guard !eventTimes.isEmpty else { return }
+        let now = Date()
+        let mins = Calendar.current.component(.hour, from: now) * 60 +
+                   Calendar.current.component(.minute, from: now)
+        count = eventTimes.filter { $0 > mins }.count
+    }
 }
 
 // MARK: - Menu Bar
