@@ -66,7 +66,7 @@ struct MenuBarContent: View {
 
         if let n = count {
             Divider()
-            Text("\(n) events today")
+            Text("\(n) \(n == 1 ? "event" : "events") today")
         }
 
         Divider()
