@@ -5,15 +5,46 @@ struct CalendarWebView: NSViewRepresentable {
     static let calendarURL = URL(string: "https://calendar.google.com")!
     static let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15"
 
-    // JS to count event elements visible on the page
+    // JS to count remaining (not yet started) timed events today
     static let countEventsJS = """
     (function() {
-        var selectors = ['[data-eventid]', '[data-eventchip]', '[data-eventchip-id]'];
-        for (var i = 0; i < selectors.length; i++) {
-            var els = document.querySelectorAll(selectors[i]);
-            if (els.length > 0) return els.length;
+        var now = new Date();
+        var y = now.getFullYear();
+        var m = String(now.getMonth() + 1).padStart(2, '0');
+        var d = String(now.getDate()).padStart(2, '0');
+        var todayYMD = y + m + d;
+        var months = ['January','February','March','April','May','June','July',
+                      'August','September','October','November','December'];
+        var todayStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+        var nowMins = now.getHours() * 60 + now.getMinutes();
+        var els = document.querySelectorAll('[data-eventid]');
+        var count = 0;
+        for (var i = 0; i < els.length; i++) {
+            var text = els[i].innerText || '';
+            if (!text) continue;
+            var isToday = false;
+            var raw = els[i].getAttribute('data-eventid') || '';
+            try {
+                var p = raw; while (p.length % 4 !== 0) p += '=';
+                if (atob(p).includes(todayYMD)) isToday = true;
+            } catch(e) {}
+            if (!isToday && text.includes(todayStr)) isToday = true;
+            if (!isToday) continue;
+            var h = -1, mn = 0;
+            var m12 = text.match(/(\\d{1,2})(?::(\\d{2}))?\\s*(AM|PM|am|pm)/);
+            if (m12) {
+                h = parseInt(m12[1]);
+                mn = m12[2] ? parseInt(m12[2]) : 0;
+                var ap = m12[3].toUpperCase();
+                if (ap === 'PM' && h !== 12) h += 12;
+                if (ap === 'AM' && h === 12) h = 0;
+            } else {
+                var m24 = text.match(/\\b(\\d{1,2}):(\\d{2})\\b/);
+                if (m24) { h = parseInt(m24[1]); mn = parseInt(m24[2]); }
+            }
+            if (h >= 0 && h * 60 + mn > nowMins) count++;
         }
-        return -1;
+        return count;
     })()
     """
 
