@@ -50,6 +50,7 @@ final class EventCount {
     static let shared = EventCount()
     var count: Int? = nil
     private var eventTimes: [Int] = [] // start times in minutes since midnight
+    private var cachedDate: Date? = nil
     private var timer: Timer?
 
     init() {
@@ -60,12 +61,19 @@ final class EventCount {
 
     func update(times: [Int]) {
         eventTimes = times
+        cachedDate = Date()
         recalculate()
     }
 
     private func recalculate() {
-        guard !eventTimes.isEmpty else { return }
         let now = Date()
+        if let cached = cachedDate, !Calendar.current.isDate(cached, inSameDayAs: now) {
+            eventTimes = []
+            cachedDate = nil
+            count = 0
+            return
+        }
+        guard !eventTimes.isEmpty else { return }
         let mins = Calendar.current.component(.hour, from: now) * 60 +
                    Calendar.current.component(.minute, from: now)
         count = eventTimes.filter { $0 > mins }.count
